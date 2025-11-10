@@ -28,14 +28,24 @@ namespace UnsecureApp.Controllers
         {
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
+                connection.Open();
                 SqlCommand sqlCommand = new SqlCommand()
                 {
-                    CommandText = "SELECT ProductId FROM Products WHERE ProductName = '" + productName + "'",
+                    CommandText = "SELECT ProductId FROM Products WHERE ProductName = @productName",
                     CommandType = CommandType.Text,
+                    Connection = connection
                 };
 
-                SqlDataReader reader = sqlCommand.ExecuteReader();
-                return reader.GetInt32(0); 
+                sqlCommand.Parameters.AddWithValue("@productName", productName);
+
+                using (SqlDataReader reader = sqlCommand.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return reader.GetInt32(0); 
+                    }
+                }
+                return -1; // or another appropriate value if not found
             }
         }
 
